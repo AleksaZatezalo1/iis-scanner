@@ -5,12 +5,6 @@ Version: 1.0
 Description: Exploits for Microsoft IIS servers.
 """
 
-def cmdSession(lport, rport):
-    """
-    """
-
-    pass
-
 ##########################
 # Remote Code Execution  #
 ##########################
