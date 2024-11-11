@@ -45,6 +45,10 @@ def banner():
 def printInfo(msg, status='log'):
     """
     Prints various types of logs to standard output.
+
+
+    ARGUMENTS:
+    * msg:
     """
     
     plus = "[+] "
@@ -64,6 +68,9 @@ def printInfo(msg, status='log'):
 def header():
     """
     Prints a cool hader to standard output.
+
+    ARGUMENTS:
+    * None
     """
 
     banner()
@@ -128,6 +135,7 @@ async def scanIP(limit=100, host="127.0.0.1", portsToScan=[21, 22, 80, 443]):
     ARGUMENTS
     * host: String. IP address of the host we are connecting too.
     * limit: Integer. The maximum ammount of async coroutines we will have. Defualts to 100. 
+    * portsToScan: An arraylist of ports to scan.
     """
 
     # create the task queue
