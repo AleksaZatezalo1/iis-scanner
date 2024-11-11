@@ -1,6 +1,6 @@
 """
 Author: Aleksa Zatezalo
-Date: Novemver 2024
+Date: November 2024
 Version: 1.0
 Description: A scanner made to do basic enumeration of Microsoft IIS servers.
 """

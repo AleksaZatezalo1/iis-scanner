@@ -6,15 +6,6 @@ Description: Exploits for Microsoft IIS servers.
 """
 
 ##########################
-# Sensative Enumeration  #
-##########################
-async def dirbust(targets, wordlist, ports=[80, 443]):
-    """
-    """
-    
-    pass
-
-##########################
 # Password Attacks       #
 ##########################
 
@@ -51,7 +42,7 @@ async def threadedLoggin(targets, usernames, passwords, ports, protocalls):
     pass
 
 ##########################
-# Remote Code Execution  #
+# Exploit Execution      #
 ##########################
 async def testWebDav(ip, port):
     """
@@ -60,6 +51,28 @@ async def testWebDav(ip, port):
     pass
 
 async def testExplodingCan(lport, lhost, rport, rhost):
+    """
+    """
+
+    pass
+
+async def testAuthBypass(ip, port):
+    """
+    """
+
+    pass
+
+
+async def testShortScanner(targets, wordlist, ports=[80, 443]):
+    """
+    """
+
+    # R&D Metasploit
+    
+    pass
+
+
+async def threadedVulnCheck(targets, usernames, passwords, ports, wordlist):
     """
     """
 
