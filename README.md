@@ -1,4 +1,4 @@
-# IIS Scanner
+# Clippy The IIS Scanner
 
 ## Technical Overview
 

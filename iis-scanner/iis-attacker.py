@@ -72,6 +72,24 @@ async def testShortScanner(targets, wordlist, ports=[80, 443]):
     pass
 
 
+async def testEternalBlue(targets, wordlist, ports=[80, 443]):
+    """
+    """
+
+    # R&D Metasploit
+    
+    pass
+
+
+async def testBlueKeep(targets, wordlist, ports=[80, 443]):
+    """
+    """
+
+    # R&D Metasploit
+    
+    pass
+
+
 async def threadedVulnCheck(targets, usernames, passwords, ports, wordlist):
     """
     """
