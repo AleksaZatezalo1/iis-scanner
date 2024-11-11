@@ -96,8 +96,9 @@ async def test_port_number(host, port, timeout=3):
 async def scanPorts(host, task_queue):
     """
     Scans a port and prints status to STDO. Adds open ports to the output dictionary.
+
     ARGUMENTS
-    
+
     * host: String. IP address of the host we are connecting too.
     * task_queue: Queue. A queue of ports for the function scanPorts to connect to.
     """
@@ -123,6 +124,7 @@ async def scanPorts(host, task_queue):
 async def scanIP(limit=100, host="127.0.0.1", portsToScan=[21, 22, 80, 443]):
     """
     Scans an IP for open ports using async function calls.
+
     ARGUMENTS
     * host: String. IP address of the host we are connecting too.
     * limit: Integer. The maximum ammount of async coroutines we will have. Defualts to 100. 
@@ -147,6 +149,9 @@ async def scanIP(limit=100, host="127.0.0.1", portsToScan=[21, 22, 80, 443]):
 async def run(targets):
     """
     Scans a range of IPs based on input added when the class was initialized. Opens a thread for each new IP.
+
+    ARGUMENTS
+    * targets: An arraylist of ips to scan.
     """
 
     # Functions needed to start program
