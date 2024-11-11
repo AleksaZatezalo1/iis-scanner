@@ -11,7 +11,6 @@ import threading
 ############
 # String IO#
 ############
-
 class color:
    CYAN = '\033[96m'
    DARKCYAN = '\033[36m'
@@ -38,6 +37,9 @@ windows_ascii_str = """
 def banner():
     """
     Prints a cool banner.
+
+    ARGUMENTS:
+    * None
     """
     
     print(color.BLUE + color.BOLD + windows_ascii_str + color.END)
@@ -48,7 +50,8 @@ def printInfo(msg, status='log'):
 
 
     ARGUMENTS:
-    * msg:
+    * msg: String. A message to pring.
+    * status: String. The status of the message. Either success, warning, failed, or log.
     """
     
     plus = "[+] "
@@ -86,6 +89,14 @@ def header():
 # Scan IO  #
 ############
 async def test_port_number(host, port, timeout=3):
+    """
+    Scans a port and prints returns true or false based on status.
+
+    ARGUMENTS
+
+    * host: String. IP address of the host we are connecting too.
+    * Port: Port to scan.
+    """
     # create coroutine for opening a connection
     coro = asyncio.open_connection(host, port)
     # execute the coroutine with a timeout
@@ -102,7 +113,7 @@ async def test_port_number(host, port, timeout=3):
     
 async def scanPorts(host, task_queue):
     """
-    Scans a port and prints status to STDO. Adds open ports to the output dictionary.
+    Scans a port and prints status to STDO.
 
     ARGUMENTS
 
@@ -166,6 +177,3 @@ async def run(targets):
     for ipAddress in targets:
         threading.Thread(target=asyncio.run, args={scanIP(host=ipAddress)}).start()
     return
-
-# header()
-# asyncio.run(run(['151.101.0.223', '8.8.8.8']))
