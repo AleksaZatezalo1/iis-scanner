@@ -2,7 +2,7 @@
 Author: Aleksa Zatezalo
 Date: Novemver 2024
 Version: 1.0
-Description: A vulnerability scanner for Microsoft IIS servers.
+Description: A scanner made to do basic enumeration of Microsoft IIS servers.
 """
 
 import asyncio
@@ -177,3 +177,13 @@ async def run(targets):
     for ipAddress in targets:
         threading.Thread(target=asyncio.run, args={scanIP(host=ipAddress)}).start()
     return
+
+
+############
+# Enum IO  #
+############
+async def dirbust(targets, wordlist, ports=[80, 443]):
+    """
+    """
+
+    pass

@@ -9,13 +9,13 @@ Description: Exploits for Microsoft IIS servers.
 # Remote Code Execution  #
 ##########################
 
-def testExplodingCan(lport, lhost, rport, rhost):
+async def testExplodingCan(lport, lhost, rport, rhost):
     """
     """
 
     pass
 
-def testWebDav(ip, port):
+async def testWebDav(ip, port):
     """
     """
 
@@ -24,48 +24,27 @@ def testWebDav(ip, port):
 
 ##########################
 # Password Attacks       #
-##########################
-def testFTP(rport, rhost, wordlist):
+async def loginFTP(targets, usernames, passwords, ports=[21]):
     """
     """
 
     pass
 
-def testSSH(rport, rhost, wordlist):
+async def loginSSH(targets, usernames, passwords, ports=[22]):
     """
     """
 
     pass
 
-def testSMB(rport, rhost, wordlist):
+
+async def loginRDP(targets, usernames, passwords, ports=[3389]):
     """
     """
 
     pass
 
-def testRPC(rport, rhost, wordlist):
-    """
-    """
 
-    pass
-
-def testSQL(rport, rhost, wordlist):
-    """
-    """
-
-    pass
-
-##########################
-# Authenticate Tests     #
-##########################
-
-def testPrivs(lport, lhost, credentials, protocol):
-    """
-    """
-
-    pass
-
-def testSQLExec(lport, lhost):
+async def loginSQL(targets, usernames, passwords, ports=[1433]):
     """
     """
 
