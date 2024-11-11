@@ -177,13 +177,3 @@ async def run(targets):
     for ipAddress in targets:
         threading.Thread(target=asyncio.run, args={scanIP(host=ipAddress)}).start()
     return
-
-
-############
-# Enum IO  #
-############
-async def dirbust(targets, wordlist, ports=[80, 443]):
-    """
-    """
-
-    pass

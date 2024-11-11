@@ -6,24 +6,18 @@ Description: Exploits for Microsoft IIS servers.
 """
 
 ##########################
-# Remote Code Execution  #
+# Sensative Enumeration  #
 ##########################
-
-async def testExplodingCan(lport, lhost, rport, rhost):
+async def dirbust(targets, wordlist, ports=[80, 443]):
     """
     """
-
+    
     pass
-
-async def testWebDav(ip, port):
-    """
-    """
-
-    pass
-
 
 ##########################
 # Password Attacks       #
+##########################
+
 async def loginFTP(targets, usernames, passwords, ports=[21]):
     """
     """
@@ -45,6 +39,23 @@ async def loginRDP(targets, usernames, passwords, ports=[3389]):
 
 
 async def loginSQL(targets, usernames, passwords, ports=[1433]):
+    """
+    """
+
+    pass
+
+
+##########################
+# Remote Code Execution  #
+##########################
+
+async def testExplodingCan(lport, lhost, rport, rhost):
+    """
+    """
+
+    pass
+
+async def testWebDav(ip, port):
     """
     """
 
