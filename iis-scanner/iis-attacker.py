@@ -44,18 +44,22 @@ async def loginSQL(targets, usernames, passwords, ports=[1433]):
 
     pass
 
-
-##########################
-# Remote Code Execution  #
-##########################
-
-async def testExplodingCan(lport, lhost, rport, rhost):
+async def threadedLoggin(targets, usernames, passwords, ports, protocalls):
     """
     """
 
     pass
 
+##########################
+# Remote Code Execution  #
+##########################
 async def testWebDav(ip, port):
+    """
+    """
+
+    pass
+
+async def testExplodingCan(lport, lhost, rport, rhost):
     """
     """
 
