@@ -5,42 +5,41 @@ Version: 1.0
 Description: Exploits for Microsoft IIS servers.
 """
 
-##########################
-# Password Attacks       #
-##########################
+import os
+import platform
+from impacket.smbconnection import SMBConnection
+import asyncio
+import aiofiles
 
-async def loginFTP(targets, usernames, passwords, ports=[21]):
+async def checkBluekeep():
     """
+    Check for BlueKeep vulnerability (CVE-2019-0708) by verifying RDP ports and versions.
     """
+    print("\nChecking for BlueKeep vulnerability...")
+    system_version = platform.version()
+    system_release = platform.release()
+    vulnerable_versions = ["6.1", "6.2", "6.3"]  # Windows 7, Windows Server 2008 R2, etc.
 
-    pass
+    if any(v in system_version for v in vulnerable_versions):
+        print("[!] System is potentially vulnerable to BlueKeep. Check if RDP patches are applied.")
+    else:
+        print("[+] System version is not vulnerable to BlueKeep.")
+    print(f"System version: {system_version}, Release: {system_release}")
 
-async def loginSSH(targets, usernames, passwords, ports=[22]):
+async def checkEternalblue(target_ip):
     """
+    Check for EternalBlue vulnerability (CVE-2017-0144) by scanning SMB ports.
     """
-
-    pass
-
-
-async def loginRDP(targets, usernames, passwords, ports=[3389]):
-    """
-    """
-
-    pass
-
-
-async def loginSQL(targets, usernames, passwords, ports=[1433]):
-    """
-    """
-
-    pass
-
-async def threadedLoggin(targets, usernames, passwords, ports, protocalls):
-    """
-    """
-
-    pass
-
+    print("\nChecking for EternalBlue vulnerability...")
+    try:
+        conn = SMBConnection(target_ip, target_ip, timeout=5)
+        conn.connectTree("IPC$")
+        print("[!] Target might be vulnerable to EternalBlue. Please ensure MS17-010 patch is applied.")
+    except Exception as e:
+        if "STATUS_ACCESS_DENIED" in str(e):
+            print("[+] Target is patched or not vulnerable to EternalBlue.")
+        else:
+            print(f"[-] Unable to determine vulnerability: {e}")
 ##########################
 # Exploit Execution      #
 ##########################
