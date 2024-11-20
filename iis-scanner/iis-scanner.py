@@ -128,6 +128,7 @@ async def checkBluekeep():
 async def checkEternalblue(target_ip):
     """
     """
+    
     print("\nChecking for EternalBlue vulnerability...")
     try:
         conn = SMBConnection(target_ip, target_ip, timeout=5)
@@ -142,6 +143,7 @@ async def checkEternalblue(target_ip):
 async def checkScstoragepathfromurl(target_url):
     """
     """
+    
     # Prepare the headers and payload for the test
     headers = {
         "Content-Length": "0",
@@ -170,6 +172,9 @@ async def checkScstoragepathfromurl(target_url):
 ##############################
     
 async def check_anonymous_smb(target_host):
+    """
+    """
+    
     print(f"\nChecking SMB anonymous access on {target_host}...")
     try:
         conn = SMBConnection(target_host, target_host, timeout=5)
@@ -190,6 +195,7 @@ async def check_anonymous_smb(target_host):
 async def checkInternalIpDisclosure(target_url):
     """
     """
+    
     print(f"\nChecking {target_url} for internal IP address disclosure vulnerability...")
     
     # Headers to simulate a request that might trigger the issue
@@ -228,6 +234,7 @@ async def checkInternalIpDisclosure(target_url):
 async def check_config_execution(target_url):
     """
     """
+    
     print(f"\nChecking {target_url} for .config file execution vulnerability...")
     
     # Construct a URL for testing (e.g., trying to access web.config)
@@ -257,6 +264,7 @@ async def check_config_execution(target_url):
 async def checkSourceCodeLeak(target_url, test_file="default.aspx"):
     """
     """
+    
     print(f"\nChecking {target_url} for source code leakage with {test_file}...")
     
     # Construct the URL for the test
@@ -284,15 +292,8 @@ async def checkSourceCodeLeak(target_url, test_file="default.aspx"):
     
 async def checkRootDirectoryFiles(target_url, files=None):
     """
-    Check if an IIS server exposes sensitive files in the root directory.
-
-    Args:
-        target_url (str): The base URL of the IIS server (e.g., http://example.com).
-        files (list): A list of filenames to check for (default includes common sensitive files).
-
-    Returns:
-        dict: A dictionary with filenames as keys and access results (status or truncated content) as values.
     """
+
     if files is None:
         # Default sensitive files to check
         files = ["global.asax", "web.config", "connectionstrings.config", "machine.config"]
@@ -325,16 +326,8 @@ async def checkRootDirectoryFiles(target_url, files=None):
 
 async def checkIISAuthBypass(target_url, test_usernames=None, test_passwords=None):
     """
-    Check if an IIS server is vulnerable to authentication bypass via cached credentials (CVE-2022-30209).
-
-    Args:
-        target_url (str): The URL of the protected resource on the IIS server.
-        test_usernames (list): A list of usernames to test.
-        test_passwords (list): A list of passwords to test.
-
-    Returns:
-        bool: True if authentication bypass is successful, False otherwise.
     """
+
     if test_usernames is None:
         # Common usernames to test
         test_usernames = ["admin", "user", "guest", "test"]

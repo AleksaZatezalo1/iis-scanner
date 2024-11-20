@@ -110,8 +110,6 @@ def header():
     printInfo("Logs are printed like this\n.", status="log")
     time.sleep(1)
 
-header()
-
 # async def main():
 #     target_ip = input("Enter the target IP (leave blank for localhost): ") or "127.0.0.1"
 
