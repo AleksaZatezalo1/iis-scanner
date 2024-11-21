@@ -1,11 +1,3 @@
 # Clippy The IIS Scanner
 
-## Technical Overview
-
-## Install Instructions
-
-## Contributing Guidelines
-
-## Known Issuess
-
-## References
+Clippy The IIS Scanner is very basic scanner that identifies RCE vulnerabilities in Windows systems.
