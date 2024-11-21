@@ -6,14 +6,11 @@ Description: A scanner made to do basic enumeration of Microsoft IIS servers.
 """
 
 import asyncio
-import threading
-import platform
+from struct import pack
 from impacket.smbconnection import SMBConnection
 import asyncio
-import aiohttp
-import re
 import time
-
+import aiohttp
 
 ############
 # String IO#
@@ -57,24 +54,10 @@ Clippy the Microsoft IIS Scanner by Aleksa Zatezalo
 """
 
 def banner():
-    """
-    Prints a cool banner.
 
-    ARGUMENTS:
-    * None
-    """
-    
     print(color.BLUE + color.BOLD + windows_ascii_str + color.END)
 
 def printInfo(msg, status='log'):
-    """
-    Prints various types of logs to standard output.
-
-
-    ARGUMENTS:
-    * msg: String. A message to pring.
-    * status: String. The status of the message. Either success, warning, failed, or log.
-    """
     
     plus = "[+] "
     exclaim ="[!] "
@@ -91,12 +74,6 @@ def printInfo(msg, status='log'):
             print(color.CYAN + exclaim + msg + color.END)
 
 def header():
-    """
-    Prints a cool hader to standard output.
-
-    ARGUMENTS:
-    * None
-    """
 
     banner()
     time.sleep(0.5)
@@ -115,14 +92,6 @@ def header():
 # Port Scan IO  #
 #################
 async def test_port_number(host, port, timeout=3):
-    """
-    Scans a port and prints returns true or false based on status.
-
-    ARGUMENTS
-
-    * host: String. IP address of the host we are connecting too.
-    * Port: Port to scan.
-    """
 
     try:
         # Attempt to open a connection with a timeout
@@ -135,14 +104,6 @@ async def test_port_number(host, port, timeout=3):
 
     
 async def scanPorts(host, task_queue, open_ports):
-    """
-    Scans a port and prints status to STDO.
-
-    ARGUMENTS
-
-    * host: String. IP address of the host we are connecting too.
-    * task_queue: Queue. A queue of ports for the function scanPorts to connect to.
-    """
 
     # read tasks forever
     while True:
@@ -160,14 +121,6 @@ async def scanPorts(host, task_queue, open_ports):
 
 
 async def scanIP(limit=100, host="127.0.0.1", portsToScan=[21, 22, 80, 139, 443, 445]):
-    """
-    Scans an IP for open ports using async function calls.
-
-    ARGUMENTS
-    * host: String. IP address of the host we are connecting too.
-    * limit: Integer. The maximum ammount of async coroutines we will have. Defualts to 100. 
-    * portsToScan: An arraylist of ports to scan.
-    """
 
     if portsToScan is None:
         # Default ports to scan
@@ -199,261 +152,128 @@ async def scanIP(limit=100, host="127.0.0.1", portsToScan=[21, 22, 80, 139, 443,
 # Vuln Scan IO  #
 #################
 
-async def checkBluekeep():
+async def checkBluekeep(target_ip, ports):
     """
+    Asynchronously checks for the BlueKeep vulnerability.
     """
-   
-    print("\nChecking for BlueKeep vulnerability...")
-    system_version = platform.version()
-    system_release = platform.release()
-    vulnerable_versions = ["6.1", "6.2", "6.3"]  # Windows 7, Windows Server 2008 R2, etc.
 
-    if any(v in system_version for v in vulnerable_versions):
-        print("[!] System is potentially vulnerable to BlueKeep. Check if RDP patches are applied.")
+    if 3389 in ports:
+        printInfo("Checking for the BlueKeep vulnerability...")
     else:
-        print("[+] System version is not vulnerable to BlueKeep.")
-    print(f"System version: {system_version}, Release: {system_release}")
+        printInfo("Will not check for BlueKeep vulnerability...")    
+        return False
+        
+    try:
+        reader, writer = await asyncio.open_connection(target_ip, 3389)
+        pre_auth_pkt = b"\x03\x00\x00\x13\x0e\xe0\x00\x00\x00\x00\x00\x00\x00\x01\x00\x08\x00\x03\x00\x00\x00"
+        writer.write(pre_auth_pkt)
+        await writer.drain()
 
-async def checkEternalblue(target_ip):
+        data = await reader.read(1024)
+        writer.close()
+        await writer.wait_closed()
+
+        if b"\x03\x00\x00\x0c" in data:
+            printInfo("Target is vulnerable to BlueKeep.", "success")
+            return True
+        else:
+            printInfo("Target may not be vulnerable to BlueKeep.", "warning")
+            return False
+    except Exception:
+        printInfo("Target is not vulnerable to BlueKeep.", "failed")
+        return False
+
+
+async def checkEternalblue(target_ip, ports):
     """
+    Asynchronously checks for the EternalBlue vulnerability.
     """
-    
-    print("\nChecking for EternalBlue vulnerability...")
+
+    if 139 in ports:
+        printInfo("Checking for the EternalBlue vulnerability...")
+    if 445 in ports:
+        printInfo("Checking for the EternalBlue vulnerability...")
+    else:
+        printInfo("Will not check for EternalBlue vulnerability...")    
+        return False
+
     try:
         conn = SMBConnection(target_ip, target_ip, timeout=5)
         conn.connectTree("IPC$")
-        print("[!] Target might be vulnerable to EternalBlue. Please ensure MS17-010 patch is applied.")
-    except Exception as e:
-        if "STATUS_ACCESS_DENIED" in str(e):
-            print("[+] Target is patched or not vulnerable to EternalBlue.")
-        else:
-            print(f"[-] Unable to determine vulnerability: {e}")
+        TRANS_PEEK_NMPIPE = 0x23
+        recvPkt = conn.send_trans(pack('<H', TRANS_PEEK_NMPIPE), maxParameterCount=0xffff, maxDataCount=0x800)
+        status = recvPkt.getNTStatus()
 
-async def checkScstoragepathfromurl(target_url):
+        if status == 0xC0000205:  # STATUS_INSUFF_SERVER_RESOURCES
+            printInfo("The target is likely vulnerable to EternalBlue.", "success")
+            return True
+        else:
+            printInfo("The target is probably not vulnerable to EternalBlue.", "failed")
+            return False
+    except Exception:
+        printInfo("An error occurred when testing for EternalBlue.", "failed")
+        return False
+
+
+async def checkScstoragepathfromurl(target_ip, ports):
     """
+    Asynchronously checks for the ScStoragePathFromURL vulnerability.
     """
     
-    # Prepare the headers and payload for the test
+    if 80 or 443 in ports:
+        printInfo("Checking for the ScStoragePathFromURL vulnerability...")
+    else:
+        printInfo("Will not check for ScStoragePathFromURL vulnerability...")    
+        return False
+    
+    target_url = f"http://{target_ip}"
     headers = {
-        "Content-Length": "0",
         "Translate": "f",
     }
-    payload = "A" * 1000  # Overly long string to test for buffer overflow
-
-    print(f"\nTesting {target_url} for ScStoragePathFromUrl vulnerability...")
+    payload = "A" * 40000  # Long string to simulate buffer overflow
 
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.request("PROPFIND", target_url, headers=headers, data=payload) as response:
-                # Vulnerable servers may return a 500 Internal Server Error or exhibit unusual behavior
+            async with session.request(
+                method="PROPFIND",
+                url=target_url,
+                headers=headers,
+                data=payload,
+                timeout=10
+            ) as response:
                 if response.status == 500:
-                    print("[!] Server might be vulnerable to ScStoragePathFromUrl (CVE-2017-7269).")
+                    printInfo("Server is likely vulnerable to ScStoragePathFromUrl.", "success")
                     return True
+                elif response.status in [403, 404]:
+                    printInfo("Server is likely not vulnerable to ScStoragePathFromUrl.", "warning")
                 else:
-                    print(f"[+] Server returned status {response.status}. Likely not vulnerable.")
-                    return False
-    except Exception as e:
-        print(f"[-] Error occurred while testing {target_url}: {e}")
-        return False
-
-##############################
-# Anonymouys Access Scan IO  #
-##############################
-async def checkAnonymousSmb(target_host):
-    """
-    """
-    
-    print(f"\nChecking SMB anonymous access on {target_host}...")
-    try:
-        conn = SMBConnection(target_host, target_host, timeout=5)
-        conn.login('', '')  # Attempt anonymous login
-        print(f"[!] Anonymous access is allowed on SMB server {target_host}.")
-        conn.logoff()
-        return True
-    except Exception as e:
-        if "STATUS_ACCESS_DENIED" in str(e):
-            print(f"[+] Anonymous access is not allowed on SMB server {target_host}.")
-        else:
-            print(f"[-] Error occurred while checking SMB server {target_host}: {e}")
-        return False
-    
-##############################
-# Common IIS Vulnerabilites  #
-##############################
-async def checkInternalIpDisclosure(target_url):
-    """
-    """
-    
-    print(f"\nChecking {target_url} for internal IP address disclosure vulnerability...")
-    
-    # Headers to simulate a request that might trigger the issue
-    headers = {
-        "Host": "localhost",
-        "User-Agent": "Mozilla/5.0",
-    }
-
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(target_url, headers=headers) as response:
-                body = await response.text()
-                headers = response.headers
-
-                # Regular expression to detect private/internal IP addresses
-                ip_pattern = r"(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})"
-
-                # Search in response body
-                body_match = re.search(ip_pattern, body)
-                if body_match:
-                    print(f"[!] Internal IP address found in response body: {body_match.group()}")
-                    return True
-
-                # Search in response headers
-                for header, value in headers.items():
-                    if re.search(ip_pattern, value):
-                        print(f"[!] Internal IP address found in response header {header}: {value}")
-                        return True
-
-                print("[+] No internal IP addresses found in the response.")
+                    printInfo("Server may be vulnerable to ScStoragePathFromUrl.", "warning")
                 return False
-    except Exception as e:
-        print(f"[-] Error occurred while checking {target_url}: {e}")
+    except aiohttp.ClientError:
+        printInfo("Error occurred testing ScStoragePathFromUrl.", "failed")
+        return False
+    except Exception:
+        printInfo("Error occurred testing ScStoragePathFromUrl.", "failed")
         return False
 
-async def check_config_execution(target_url):
-    """
-    """
-    
-    print(f"\nChecking {target_url} for .config file execution vulnerability...")
-    
-    # Construct a URL for testing (e.g., trying to access web.config)
-    test_url = f"{target_url.rstrip('/')}/web.config"
-    
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(test_url) as response:
-                body = await response.text()
-
-                # If the server processes the .config file, it may return a 200 status with unexpected content.
-                if response.status == 200:
-                    print(f"[!] .config file is accessible at {test_url}.")
-                    print(f"Response content (truncated): {body[:200]}...")
-                    return True
-                elif response.status == 403:
-                    print(f"[+] Access to .config files is forbidden at {test_url}.")
-                    return False
-                else:
-                    print(f"[?] Received status {response.status} while testing {test_url}. Likely not vulnerable.")
-                    return False
-    except Exception as e:
-        print(f"[-] Error occurred while checking {test_url}: {e}")
-        return False
-    
-
-async def checkSourceCodeLeak(target_url, test_file="default.aspx"):
-    """
-    """
-    
-    print(f"\nChecking {target_url} for source code leakage with {test_file}...")
-    
-    # Construct the URL for the test
-    test_url = f"{target_url.rstrip('/')}/{test_file}"
-    
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(test_url) as response:
-                body = await response.text()
-
-                # Look for indicators of source code in the response
-                if response.status == 200 and ("<%@ Page" in body or "<script runat" in body):
-                    print(f"[!] Source code leakage detected at {test_url}.")
-                    print(f"Response content (truncated): {body[:200]}...")
-                    return True
-                elif response.status == 404:
-                    print(f"[+] Test file {test_file} not found on the server.")
-                    return False
-                else:
-                    print(f"[?] Received status {response.status} while testing {test_url}. Likely not vulnerable.")
-                    return False
-    except Exception as e:
-        print(f"[-] Error occurred while checking {test_url}: {e}")
-        return False
-    
-async def checkRootDirectoryFiles(target_url, files=None):
-    """
-    """
-
-    if files is None:
-        # Default sensitive files to check
-        files = ["global.asax", "web.config", "connectionstrings.config", "machine.config"]
-
-    print(f"\nChecking {target_url} for sensitive root directory files...")
-    results = {}
-
-    async with aiohttp.ClientSession() as session:
-        for file in files:
-            test_url = f"{target_url.rstrip('/')}/{file}"
-            try:
-                async with session.get(test_url) as response:
-                    body = await response.text()
-
-                    if response.status == 200:
-                        print(f"[!] File {file} is accessible at {test_url}.")
-                        print(f"Content (truncated): {body[:200]}...")
-                        results[file] = {"status": response.status, "content": body[:200]}
-                    elif response.status == 404:
-                        print(f"[+] File {file} not found at {test_url}.")
-                        results[file] = {"status": response.status, "content": None}
-                    else:
-                        print(f"[?] Unexpected status {response.status} for {file} at {test_url}.")
-                        results[file] = {"status": response.status, "content": None}
-            except Exception as e:
-                print(f"[-] Error occurred while checking {file} at {test_url}: {e}")
-                results[file] = {"status": "error", "content": str(e)}
-
-    return results
-
-async def checkIISAuthBypass(target_url, test_usernames=None, test_passwords=None):
-    """
-    """
-
-    if test_usernames is None:
-        # Common usernames to test
-        test_usernames = ["admin", "user", "guest", "test"]
-    if test_passwords is None:
-        # Common passwords to test
-        test_passwords = ["password", "12345", "admin", "guest", "test"]
-
-    print(f"\nChecking {target_url} for IIS authentication bypass vulnerability...")
-
-    async with aiohttp.ClientSession() as session:
-        for username in test_usernames:
-            for password in test_passwords:
-                try:
-                    auth = aiohttp.BasicAuth(username, password)
-                    async with session.get(target_url, auth=auth) as response:
-                        if response.status == 200:
-                            print(f"[!] Authentication bypass successful with credentials: {username}:{password}")
-                            return True
-                        elif response.status == 401:
-                            print(f"[+] Credentials failed: {username}:{password}")
-                        else:
-                            print(f"[?] Unexpected status {response.status} with {username}:{password}")
-                except Exception as e:
-                    print(f"[-] Error occurred while testing {username}:{password}: {e}")
-    print("[+] Authentication bypass unsuccessful.")
-    return False
 
 async def main():
     """
     Main function to take user input for IP address and scan ports.
     """
 
-    # Get IP address from the user
+    # # Get IP address from the user
     ip = input("Enter the target IP address: ")
     ports = [21, 22, 80, 139, 443, 445]
-    print(f"Scanning {ip} for open ports...\n")
-    open_ports = await scanIP(host=ip, portsToScan=ports)
+    print("\nScanning for open ports.")
+    openPorts = await scanIP(host=ip, portsToScan=ports)
 
+    print("\nScanning for vulns.")
+    bluekeep_result, eternalblue_result, scstorage_result = await asyncio.gather(
+        checkBluekeep(ip, openPorts),
+        checkEternalblue(ip, openPorts),
+        checkScstoragepathfromurl(ip, openPorts)
+    )
 
 # Run the script
 if __name__ == "__main__":
